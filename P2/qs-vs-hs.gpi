@@ -1,0 +1,88 @@
+set terminal png
+
+set fit logfile "fit.history"
+
+# Gráfica 1: Quicksort -----------------------------------
+set output "quickSort.png"
+set xlabel "Array size"
+set ylabel "Millions of program steps"
+set title "Quicksort"
+plot "qs-vs-hs.Msteps" using 1:2 with linespoints title "random arrays", \
+     "qs-vs-hs.Msteps" using 1:4 with linespoints title "sorted arrays", \
+     "qs-vs-hs.Msteps" using 1:6 with linespoints title "reverse sorted arrays"
+
+# Gráfica 2: Heapsort ------------------------------------
+set output "heapSort.png"
+set title "Heapsort"
+plot "qs-vs-hs.Msteps" using 1:3 with linespoints title "random arrays", \
+     "qs-vs-hs.Msteps" using 1:5 with linespoints title "sorted arrays", \
+     "qs-vs-hs.Msteps" using 1:7 with linespoints title "reverse sorted arrays"
+
+# Gráfica 3: Comparación con random arrays ----------------
+
+# Inicializamos los parámetros de ajuste
+a = 1.00000000000000000000
+b = 1.00000000000000000000
+c = 1.00000000000000000000
+d = 1.00000000000000000000
+
+# Definimos las funciones de ajuste para Quicksort y Heapsort
+y_qs_RA(x) = a*x*log(x) + b
+y_hs_RA(x) = c*x*log(x) + d
+
+# Ajustamos las funciones a los datos de Quicksort y Heapsort en random arrays
+fit y_qs_RA(x) "qs-vs-hs.Msteps" using 1:2 via a, b
+fit y_hs_RA(x) "qs-vs-hs.Msteps" using 1:3 via c, d
+
+set output "qs-vs-hs-RA.png"
+set title "Quicksort versus Heapsort (random arrays)"
+plot "qs-vs-hs.Msteps" using 1:2 with linespoints title "Quicksort", \
+     "qs-vs-hs.Msteps" using 1:3 with linespoints title "Heapsort", \
+     y_qs_RA(x) with lines title "fitting Quicksort time values to ...", \
+     y_hs_RA(x) with lines title "fitting Heapsort time values to ..."
+
+# Gráfica 4: Comparación con sorted arrays ----------------
+
+# Inicializamos los parámetros de ajuste
+e = 1.00000000000000000000
+f = 1.00000000000000000000
+g = 1.00000000000000000000
+h = 1.00000000000000000000
+
+# Definimos las funciones de ajuste para Quicksort y Heapsort
+y_qs_SA(x) = e*x*log(x) + f
+y_hs_SA(x) = g*x*log(x) + h
+
+# Ajustamos las funciones a los datos de Quicksort y Heapsort en sorted arrays
+fit y_qs_SA(x) "qs-vs-hs.Msteps" using 1:4 via e, f
+fit y_hs_SA(x) "qs-vs-hs.Msteps" using 1:5 via g, h
+
+set output "qs-vs-hs-SA.png"
+set title "Quicksort versus Heapsort (sorted arrays)"
+plot "qs-vs-hs.Msteps" using 1:4 with linespoints title "Quicksort", \
+     "qs-vs-hs.Msteps" using 1:5 with linespoints title "Heapsort", \
+     y_qs_SA(x) with lines title "fitting Quicksort time values to ...", \
+     y_hs_SA(x) with lines title "fitting Heapsort time values to ..."
+
+# Gráfica 5: Comparación con reverse sorted arrays ---------
+
+# Inicializamos los parámetros de ajuste
+i = 1.00000000000000000000
+j = 1.00000000000000000000
+k = 1.00000000000000000000
+l = 1.00000000000000000000
+
+# Definimos las funciones de ajuste para Quicksort y Heapsort
+y_qs_RSA(x) = i*x*log(x) + j
+y_hs_RSA(x) = k*x*log(x) + l
+
+# Ajustamos las funciones a los datos de Quicksort y Heapsort en reverse sorted arrays
+fit y_qs_RSA(x) "qs-vs-hs.Msteps" using 1:6 via i, j
+fit y_hs_RSA(x) "qs-vs-hs.Msteps" using 1:7 via k, l
+
+set output "qs-vs-hs-RSA.png"
+set title "Quicksort versus Heapsort (reverse sorted arrays)"
+plot "qs-vs-hs.Msteps" using 1:6 with linespoints title "Quicksort", \
+     "qs-vs-hs.Msteps" using 1:7 with linespoints title "Heapsort", \
+     y_qs_RSA(x) with lines title "fitting Quicksort time values to ...", \
+     y_hs_RSA(x) with lines title "fitting Heapsort time values to ..."

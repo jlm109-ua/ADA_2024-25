@@ -1,0 +1,11 @@
+# Juan Llinares Mauri 74011239E
+
+set terminal png
+
+set output "pow2.png"
+set xlabel "2^n"
+set ylabel "Program Steps"
+set title "pow2"
+plot "pow2.Msteps" using 1:2 with linespoints title "pow2_1", \
+     "pow2.Msteps" using 1:3 with linespoints title "pow2_2", \
+     "pow2.Msteps" using 1:4 with linespoints title "pow2_3"

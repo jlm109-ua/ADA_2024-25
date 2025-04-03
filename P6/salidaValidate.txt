@@ -1,0 +1,8 @@
+Entrega de la práctica 6.2
+Fichero a validar: 74011239E.tar.gz
+
+DNI/NIE asociado al archivo comprimido: 74011239E
+Nombre capturado en la primera línea de maze.cc: Juan Llinares Mauri 74011239E
+Asegúrate de que la captura de DNI/NIE y nombre es correcta.
+
+VALIDACIÓN POSITIVA: El trabajo cumple las especificaciones, pero asegúrate de que también compila en los ordenadores del aula.
