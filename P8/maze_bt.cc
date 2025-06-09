@@ -7,10 +7,8 @@
 #include <string.h>
 #include <climits>
 #include <vector>
-#include <queue>
 #include <algorithm>
-#include <iomanip>
-#include <cmath>
+#include <iomanip> // Para setw, si quieres alineación adicional
 
 // Colores para la salida por consola en el modo [--debug]
 #define RESET "\033[0m"
@@ -21,21 +19,6 @@
 #define BOLD "\033[1m"
 
 using namespace std;
-
-/// Estructura para almacenar el laberinto.
-/// - n: Número de filas
-/// - m: Número de columnas
-/// - maze: Laberinto (vector de vectores de enteros)
-/// - - 0: Pared
-/// - - 1: Camino
-struct Maze
-{
-    int n = 0;                     // Número de filas
-    int m = 0;                     // Número de columnas
-    vector<vector<int>> maze = {}; // Laberinto
-};
-
-Maze mazeStruct; // Variable global para el laberinto
 
 /// Enumerado para las direcciones del camino codificado (flag [-p]).
 /// Las direcciones son:
@@ -73,9 +56,6 @@ struct Stats
     int nhv = 0;                     // Número de nodos hoja visitados
     int nnf = 0;                     // Número de nodos no factibles
     int nnp = 0;                     // Número de nodos no prometedores
-    int ppd = 0;                     // Número de nodos prometedores pero descartados
-    int msah = 0;                    // Número de veces que la mejor solución se ha actualizado desde un nodo hoja
-    int msap = 0;                    // Número de veces que la mejor solución se ha actualizado a partir de la cota pesimista de un nodo sin completar
     std::chrono::duration<double> t; // Tiempo de ejecución
 };
 
@@ -89,73 +69,6 @@ struct Node
     int x = 0, y = 0;  // Coordenadas del nodo
     vector<Step> path; // Camino codificado
     int cost = 0;      // Coste del nodo
-};
-
-/**
- * @brief Función que calcula la heurística de Chebyshev.
- * La heurística de Chebyshev es la distancia máxima entre las coordenadas x e y del nodo actual y el objetivo (el final del laberinto).
- * @param node Nodo actual
- * @param n Número de filas
- * @param m Número de columnas
- * @return int: Heurística de Chebyshev
- */
-int chebyshev(const Node &node, int n, int m)
-{
-    return max(abs(node.x - (n - 1)), abs(node.y - (m - 1)));
-}
-
-/**
- * @brief Función que calcula la heurística de Manhattan.
- * La heurística de Manhattan es la suma de las diferencias absolutas entre las coordenadas del nodo actual y el final del laberinto.
- * @param node Nodo actual
- * @return int: Heurística de Manhattan
- */
-int euclidean(const Node &node)
-{
-    return sqrt(pow(node.x - (mazeStruct.n - 1), 2) + pow(node.y - (mazeStruct.m - 1), 2));
-}
-
-/**
- * @brief Función que calcula la cota optimista de un nodo.
- *
- * @param node Nodo actual
- * @param maze Laberinto
- * @return int: Valor de la cota optimista
- */
-int optimist(const Node &node)
-{
-    return chebyshev(node, mazeStruct.n, mazeStruct.m);
-    // return euclidean(node, mazeStruct.n, mazeStruct.m);
-}
-
-/**
- * @brief Sobrecarga del operador < para comparar nodos.
- * Se sobrecarga el operador < para poder usar la cola de prioridad con los nodos, ordenando por coste.
- * @param a Nodo a
- * @param b Nodo b
- */
-bool operator<(const Node &a, const Node &b)
-{
-    return (a.cost + optimist(a)) > (b.cost + optimist(b)); // Ordenamos los nodos por coste (menor coste primero)
-}
-
-/**
- * @brief Estructura para comparar nodos en la cola de prioridad.
- */
-struct compareNodes
-{
-    /**
-     * * @brief Sobrecarga del operador () para comparar nodos.
-     *
-     * @param a Nodo a
-     * @param b Nodo b
-     * @return - true si el coste de a es mayor que el de b
-     * @return - false si el coste de a es menor o igual que el de b
-     */
-    bool operator()(const Node &a, const Node &b)
-    {
-        return a.cost > b.cost; // Ordenamos los nodos por coste (menor coste primero)
-    }
 };
 
 /**
@@ -178,7 +91,7 @@ void printStats(Node mejorNodo, Stats stats, bool debug)
     if (debug)
     {
         cout << "Resultado: " << mejorNodo.cost << endl;
-        cout << "Nodos visitados: " << stats.nv << "\nNodos explorados: " << stats.ne << "\nNodos hoja visitados: " << stats.nhv << "\nNodos no factibles: " << stats.nnf << "\nNodos no prometedores: " << stats.nnp << "\nNodos prometedores descartados: " << stats.ppd << "\nMejor solución actualizada (hoja): " << stats.msah << "\nMejor solución actualizada (pesimista): " << stats.msap << endl;
+        cout << "Nodos visitados: " << stats.nv << "\nNodos explorados: " << stats.ne << "\nNodos hoja visitados: " << stats.nhv << "\nNodos no factibles: " << stats.nnf << "\nNodos no prometedores: " << stats.nnp << endl;
         cout << "Tiempo de ejecución: " << stats.t.count() << " ms" << endl;
     }
     else
@@ -187,7 +100,7 @@ void printStats(Node mejorNodo, Stats stats, bool debug)
             cout << 0 << endl;
         else
             cout << mejorNodo.cost << endl;
-        cout << stats.nv << " " << stats.ne << " " << stats.nhv << " " << stats.nnf << " " << stats.nnp << " " << stats.ppd << " " << stats.msah << " " << stats.msap << endl;
+        cout << stats.nv << " " << stats.ne << " " << stats.nhv << " " << stats.nnf << " " << stats.nnp << endl;
         cout << fixed << setprecision(3) << stats.t.count() << endl;
     }
 }
@@ -199,15 +112,15 @@ void printStats(Node mejorNodo, Stats stats, bool debug)
  * @param mejorNodo Mejor nodo encontrado
  * @return - void
  */
-void print2D(Node mejorNodo)
+void print2D(vector<vector<int>> maze, Node mejorNodo)
 {
-    vector<vector<int>> route = mazeStruct.maze; // Copia del laberinto para marcar el camino
+    vector<vector<int>> route = maze; // Copia del laberinto para marcar el camino
 
     auto position = make_tuple(0, 0); // Posición inicial
 
     if (mejorNodo.cost != INT_MAX)
         route[get<0>(position)][get<1>(position)] = 2; // Marcamos la posición inicial
-    // if (mejorNodo.path.size() != 0) // <-- Esta condición no funciona porque para el laberinto 01 sólo hay una celda y no se podría marcar como visitada pues mejorNodo.path estaría vacío aunque hubiese solución
+    // if (mejorNodo.path.size() != 0)
     // route[get<0>(position)][get<1>(position)] = 2; // Marcamos la posición inicial
     else
     {
@@ -347,7 +260,7 @@ bool checkArgs(int argc, char *argv[], string &file, bool &p, bool &p2D, bool &d
  * @param maze Laberinto
  * @param debug Flag para el modo debug
  */
-void maze_parser(string file, bool debug)
+void maze_parser(string file, int &n, int &m, vector<vector<int>> &maze, bool debug)
 {
     ifstream f(file);
     if (!f)
@@ -357,33 +270,46 @@ void maze_parser(string file, bool debug)
         exit(1);
     }
 
-    f >> mazeStruct.n >> mazeStruct.m;
+    f >> n >> m;
 
     if (debug)
     {
         cout << "DEBUG - DIMENSIONES" << endl;
-        cout << "DEBUG - \tFilas: " << mazeStruct.n << endl;
-        cout << "DEBUG - \tColumnas: " << mazeStruct.m << endl;
+        cout << "DEBUG - \tFilas: " << n << endl;
+        cout << "DEBUG - \tColumnas: " << m << endl;
     }
 
-    mazeStruct.maze.resize(mazeStruct.n, vector<int>(mazeStruct.m));
+    maze.resize(n, vector<int>(m));
 
-    for (int i = 0; i < mazeStruct.n; i++)
-        for (int j = 0; j < mazeStruct.m; j++)
-            f >> mazeStruct.maze[i][j];
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < m; j++)
+            f >> maze[i][j];
 
     if (debug)
     {
         cout << "DEBUG - LABERINTO" << endl;
-        for (int i = 0; i < mazeStruct.n; i++)
+        for (int i = 0; i < n; i++)
         {
-            for (int j = 0; j < mazeStruct.m; j++)
-                cout << mazeStruct.maze[i][j] << " ";
+            for (int j = 0; j < m; j++)
+                cout << maze[i][j] << " ";
             cout << endl;
         }
     }
 
     f.close();
+}
+
+/**
+ * @brief Función que calcula la heurística de Chebyshev.
+ * La heurística de Chebyshev es la distancia máxima entre las coordenadas x e y del nodo actual y el objetivo (el final del laberinto).
+ * @param node Nodo actual
+ * @param n Número de filas
+ * @param m Número de columnas
+ * @return int: Heurística de Chebyshev
+ */
+int chebyshev(const Node &node, int n, int m)
+{
+    return max(abs(node.x - (n - 1)), abs(node.y - (m - 1)));
 }
 
 /**
@@ -487,14 +413,17 @@ vector<Node> expand(const Node &node, int n, int m)
  * @brief Función que comprueba si el nodo es factible.
  * Un nodo es factible si está dentro de los límites del laberinto y no es una pared.
  * @param node Nodo actual
+ * @param maze Laberinto
+ * @param n Número de filas
+ * @param m Número de columnas
  * @return - true si está dentro de los límites del laberinto y es un camino
  * @return - false si está fuera de los límites del laberinto o es una pared
  */
-bool isFeasible(const Node &node)
+bool isFeasible(const Node &node, const vector<vector<int>> &maze, int n, int m)
 {
-    return node.x >= 0 && node.x < mazeStruct.n &&
-           node.y >= 0 && node.y < mazeStruct.m &&
-           mazeStruct.maze[node.x][node.y] == 1;
+    return node.x >= 0 && node.x < n &&
+           node.y >= 0 && node.y < m &&
+           maze[node.x][node.y] == 1;
 }
 
 /**
@@ -505,9 +434,10 @@ bool isFeasible(const Node &node)
  * @return - true si el coste del nodo es menor que la mejor solución
  * @return - false si no es menor
  */
-bool isPromising(const Node &node, const Node &currentBest)
+bool isPromising(const Node &node, const Node &currentBest, int n, int m)
 {
-    return (node.cost + optimist(node)) < currentBest.cost;
+    // return node.cost < currentBest.cost; <-- Con esta heurística obtenemos casi 150k nodos visitados en el laberinto 09.
+    return node.cost + chebyshev(node, n, m) < currentBest.cost; // <-- Con esta heurística (de Chebyshev) obtenemos apenas 220 nodos visitados en el laberinto 09.
 }
 
 /**
@@ -522,7 +452,7 @@ bool isPromising(const Node &node, const Node &currentBest)
  * @param debug Flag para el modo debug (puede afectar al rendimiento)
  * @return - void
  */
-/*void maze_bt(vector<vector<int>> maze, int n, int m, const Node &node, Node &currentBest, Stats &stats, bool debug)
+void maze_bt(vector<vector<int>> maze, int n, int m, const Node &node, Node &currentBest, Stats &stats, bool debug)
 {
     string indent(node.cost * 2, ' '); // Para el modo [--debug]: Sangría proporcional al coste para identificar profundidad
 
@@ -591,18 +521,14 @@ bool isPromising(const Node &node, const Node &currentBest)
             stats.nnf++;
         }
     }
-}*/
-
-void maze_bb()
-{
 }
 
 int main(int argc, char *argv[])
 {
     string file;
     bool p = false, p2D = false, debug = false; // Flags para la salida
-
-    priority_queue<Node, vector<Node>, compareNodes> q; // Cola de prioridad para almacenar los nodos a explorar
+    int n, m;                                   // Dimensiones del laberinto.
+    vector<vector<int>> maze;                   // Laberinto
 
     Stats stats; // Estructura para almacenar las estadísticas
 
@@ -618,7 +544,7 @@ int main(int argc, char *argv[])
     if (!checkArgs(argc, argv, file, p, p2D, debug))
         return 1;
     else
-        maze_parser(file, debug);
+        maze_parser(file, n, m, maze, debug);
 
     if (debug)
     {
@@ -633,8 +559,7 @@ int main(int argc, char *argv[])
         cout << "DEBUG - INICIO DEL ALGORITMO" << endl;
 
     auto start = std::chrono::high_resolution_clock::now(); // Iniciamos el cronómetro
-    // maze_bt(maze, n, m, nodoInicial, mejorNodo, stats, debug);
-    maze_bb();
+    maze_bt(maze, n, m, nodoInicial, mejorNodo, stats, debug);
     auto end = std::chrono::high_resolution_clock::now(); // Paramos el cronómetro
 
     if (debug)
@@ -646,7 +571,7 @@ int main(int argc, char *argv[])
 
     if (p2D)
     {
-        print2D(mejorNodo);
+        print2D(maze, mejorNodo);
     }
 
     if (p && mejorNodo.cost == INT_MAX)

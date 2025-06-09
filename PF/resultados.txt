@@ -1,0 +1,15 @@
+Laberinto                      Coste    Camino   Tiempo
+============================================================
+00-bb.maze                     ❌        ✅        0.295s
+01-bb.maze                     ❌        ✅        0.281s
+02-bb.maze                     ❌        ✅        0.370s
+03-bb.maze                     ❌        ✅        0.280s
+04-bb.maze                     ❌        ✅        0.297s
+05-bb.maze                     ❌        ✅        0.314s
+06-bb.maze                     ❌        ✅        0.279s
+07-bb.maze                     ❌        ✅        0.619s
+08-bb.maze                     ❌        ❌        0.453s
+09-bb.maze                     ❌        ❌        0.511s
+10-bb.maze                     ❌        ❌        0.177s
+11-bb.maze                     ❌        ❌        0.022s
+12-bb.maze                     ❌        ✅        0.013s
