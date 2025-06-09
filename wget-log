@@ -1,6 +1,0 @@
---2025-05-08 16:25:43--  https://update.code.visualstudio.com/commit:e54c774e0add60467559eb0d1e229c6452cf8447/server-linux-x64/stable
-Resolving update.code.visualstudio.com (update.code.visualstudio.com)... 13.107.246.77
-Connecting to update.code.visualstudio.com (update.code.visualstudio.com)|13.107.246.77|:443... connected.
-ERROR: cannot verify update.code.visualstudio.com's certificate, issued by ‘CN=Kaspersky Anti-Virus Personal Root Certificate,O=AO Kaspersky Lab’:
-  Self-signed certificate encountered.
-To connect to update.code.visualstudio.com insecurely, use `--no-check-certificate'.
